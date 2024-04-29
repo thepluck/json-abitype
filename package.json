@@ -1,14 +1,14 @@
 {
   "name": "json-abitype",
   "version": "0.0.0",
-  "description": "Minimalistic boilerplate to quick-start Node.js development in TypeScript.",
+  "description": "CLI for converting JSON to ABIType.",
   "type": "module",
   "engines": {
     "node": ">= 20.9 < 21"
   },
   "devDependencies": {
     "@types/jest": "~29.5",
-    "@types/node": "~20",
+    "@types/node": "~20.12.7",
     "@typescript-eslint/eslint-plugin": "~7.6",
     "@typescript-eslint/parser": "~7.6",
     "eslint": "~8.56",
@@ -19,21 +19,26 @@
     "rimraf": "~5.0",
     "ts-api-utils": "~1.3",
     "ts-jest": "~29.1",
+    "ts-node": "^10.9.2",
     "typescript": "~5.4"
   },
   "scripts": {
-    "start": "node build/src/main.js",
-    "clean": "rimraf coverage build tmp",
-    "prebuild": "npm run lint",
-    "build": "tsc -p tsconfig.json",
-    "build:watch": "tsc -w -p tsconfig.json",
-    "build:release": "npm run clean && tsc -p tsconfig.release.json",
+    "start": "node -r ts-node/register bin/index.js",
+    "start:break": "node --inspect-brk -r ts-node/register bin/index.js",
+    "start:debug": "node --inspect -r ts-node/register bin/index.js",
+    "clean": "rimraf coverage lib tmp",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "build:release": "npm run clean && tsc",
     "lint": "eslint . --ext .ts --ext .mts",
     "test": "jest --coverage",
     "prettier": "prettier --config .prettierrc --write .",
     "test:watch": "jest --watch"
   },
-  "author": "Jakub Synowiec <jsynowiec@users.noreply.github.com>",
+  "author": {
+    "name": "Vu Nguyen Hoang",
+    "email": "nghoangvu24@gmail.com"
+  },
   "license": "Apache-2.0",
   "dependencies": {
     "commander": "^12.0.0",
@@ -41,5 +46,11 @@
   },
   "volta": {
     "node": "20.12.2"
+  },
+  "bin": {
+    "json-abitype": "./bin/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
