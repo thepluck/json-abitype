@@ -58,6 +58,9 @@ function objectToString(obj: object, indent: string, named: boolean): string {
   let result: string = '';
   // check if obj is an array
   if (Array.isArray(obj)) {
+    if (obj.length === 0) {
+      return '[]';
+    }
     let first = true;
     if (named) {
       result += '[\n';
@@ -90,7 +93,7 @@ function objectToString(obj: object, indent: string, named: boolean): string {
     result += `\n${indent}}`;
   } else {
     if (typeof obj === 'string') {
-      result += `"${obj}"`;
+      result += `'${obj}'`;
     } else {
       result += obj;
     }
