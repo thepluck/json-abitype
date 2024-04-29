@@ -1,6 +1,6 @@
 {
   "name": "json-abitype",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "CLI for converting JSON to ABIType.",
   "type": "module",
   "engines": {
