@@ -48,7 +48,7 @@
     "node": "20.12.2"
   },
   "bin": {
-    "json-abitype": "./bin/index.js"
+    "json-abitype": "bin/index.js"
   },
   "publishConfig": {
     "access": "public"
