@@ -1,34 +1,99 @@
-/**
- * Some predefined delay values (in milliseconds).
- */
-export enum Delays {
-  Short = 500,
-  Medium = 2000,
-  Long = 5000,
+import { program } from 'commander';
+import path from 'path';
+import fs from 'fs/promises';
+
+program
+  .name('json-abitype')
+  .description('CLI for converting JSON to ABIType')
+  .version('0.0.0');
+
+program
+  .requiredOption('-d, --dirs <string...>', 'files or directories to process')
+  .option('-o, --out <string>', 'output file');
+
+program.parse();
+
+const options = program.opts();
+let result = '';
+let first = true;
+
+for (const dir of options.dirs) {
+  await fs.stat(dir).then(async (stat) => {
+    if (stat.isDirectory()) {
+      await processDirectory(dir);
+    } else {
+      await processFile(dir);
+    }
+  });
 }
 
-/**
- * Returns a Promise<string> that resolves after a given time.
- *
- * @param {string} name - A name.
- * @param {number=} [delay=Delays.Medium] - A number of milliseconds to delay resolution of the Promise.
- * @returns {Promise<string>}
- */
-function delayedHello(
-  name: string,
-  delay: number = Delays.Medium,
-): Promise<string> {
-  return new Promise((resolve: (value?: string) => void) =>
-    setTimeout(() => resolve(`Hello, ${name}`), delay),
-  );
+if (options.out) {
+  await fs.writeFile(options.out, result);
+} else {
+  console.log(result);
 }
 
-// Please see the comment in the .eslintrc.json file about the suppressed rule!
-// Below is an example of how to use ESLint errors suppression. You can read more
-// at https://eslint.org/docs/latest/user-guide/configuring/rules#disabling-rules
+async function processDirectory(dir: string): Promise<void> {
+  await fs.readdir(dir).then(async (files) => {
+    for (const file of files) {
+      await processFile(path.join(dir, file));
+    }
+  });
+}
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function greeter(name: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-  // The name parameter should be of type string. Any is used only to trigger the rule.
-  return await delayedHello(name, Delays.Long);
+async function processFile(file: string): Promise<void> {
+  if (path.extname(file) !== '.json') {
+    return;
+  }
+  const obj = JSON.parse(await fs.readFile(file, 'utf8'));
+  const abi = 'abi' in obj ? obj.abi : obj;
+  if (!first) {
+    result += '\n';
+  }
+  result += `export const ${path.basename(file, '.json')} = ${objectToString(abi, '', true)} as const;`;
+  first = false;
+}
+
+function objectToString(obj: object, indent: string, named: boolean): string {
+  let result: string = '';
+  // check if obj is an array
+  if (Array.isArray(obj)) {
+    let first = true;
+    if (named) {
+      result += '[\n';
+    } else {
+      result += `${indent}[\n`;
+    }
+    for (const item of obj) {
+      if (!first) {
+        result += ',\n';
+      }
+      result += objectToString(item, indent + '  ', false);
+      first = false;
+    }
+    result += `\n${indent}]`;
+  } else if (typeof obj === 'object') {
+    let first = true;
+    if (named) {
+      result += '{\n';
+    } else {
+      result += `${indent}{\n`;
+    }
+    for (const key in obj) {
+      if (key == 'internalType') continue;
+      if (!first) {
+        result += ',\n';
+      }
+      result += `${indent}  ${key}: ${objectToString(obj[key], indent + '  ', true)}`;
+      first = false;
+    }
+    result += `\n${indent}}`;
+  } else {
+    if (typeof obj === 'string') {
+      result += `"${obj}"`;
+    } else {
+      result += obj;
+    }
+  }
+  return result;
 }
